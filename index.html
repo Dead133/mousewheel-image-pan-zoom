@@ -106,14 +106,15 @@
 
             function onWheel(e) {
                 e = e || window.event;
-                // wheelDelta не дает возможность узнать количество пикселей
                 var delta = e.deltaY || e.detail || - e.wheelDelta;
                 if ( delta < 0 ) {
                     var scaleDifference = 1.05;
                 } else {
                     var scaleDifference = 0.95;
                 }
-                if ( svgScale * scaleDifference < 1 ) scaleDifference = 1;  
+                //Minimal zoom ratio is 1
+                if ( svgScale * scaleDifference < 1 ) scaleDifference = 1 / svgScale;  
+                
                 var mouseXPosition = e.pageX - svgOffsetLeft,
                     mouseYPosition = e.pageY - svgOffsetTop,
                     //Get the cursor position over a picture container
@@ -129,7 +130,6 @@
                 //calculate new picture offset
                 svgTranslate.x = svgTranslate.x - widthDifferenceRelativeToMouseX;
                 svgTranslate.y = svgTranslate.y - heightDifferenceRelativeToMouseY;
-
 
                 //Fit image sides to container
                 if ( svgTranslate.x > 0 ) svgTranslate.x = 0;
@@ -156,8 +156,6 @@
                 svgTranslateYInput.value = svgTranslate.y;
                 //end of debug info
 
-                //svgTranslate.x = 
-                //svgTranslate.y = 
                 var svgGroup = document.getElementById('svgGroup'),
                     svgTransform = 'translate(' + svgTranslate.x + ', ' + svgTranslate.y + ')' + ' scale(' + svgScale + ')';
                 svgGroup.setAttributeNS(null, 'transform', svgTransform);
@@ -166,8 +164,12 @@
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
         });
-
-</script>
+    </script>
+    <style type="text/css">
+        .grabbing { 
+          cursor: url(closedhand.cur), pointer !important; 
+        }
+    </style>
 </head>
 <body>
     <div>
