@@ -9,10 +9,10 @@ h2 {
 .column {
 	float:left;
 }
-.grabbing { 
+.dragging { 
 	cursor: url(closedhand.cur), pointer !important; 
 }
 
-.grabbable { 
+.draggable { 
 	cursor: url(openhand.cur), pointer !important; 
 }

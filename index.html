@@ -13,6 +13,11 @@
         };
         svgHeight = 0;
         svgWidth = 0;
+        mouseDragging = false;
+        previousMousePosition = {
+            x: null,
+            y: null
+        }
 
         $(document).ready(function(){
             var img = new Image();
@@ -67,23 +72,6 @@
                 svgOffsetLeft = $('#presentationContainer').offset().left;
                 svgOffsetTop = $('#presentationContainer').offset().top;
             }
-
-            //******* debug mouse position info ********
-            $('#presentationContainer').on("mousemove", function(e) {
-                var mouseXInput = document.getElementById('mouseXInput'),
-                    mouseYInput = document.getElementById('mouseYInput'),
-                    mouseXRelativeInput = document.getElementById('mouseXRelativeInput'),
-                    mouseYRelativeInput = document.getElementById('mouseYRelativeInput'),
-                    mouseXPosition = e.pageX - svgOffsetLeft,
-                    mouseYPosition = e.pageY - svgOffsetTop,
-                    mouseXRelativePosition = mouseXPosition / svgWidth,
-                    mouseYRelativePosition = mouseYPosition / svgHeight;
-                mouseXInput.value = mouseXPosition;
-                mouseYInput.value = mouseYPosition;
-                mouseXRelativeInput.value = mouseXRelativePosition;
-                mouseYRelativeInput.value = mouseYRelativePosition;
-            });
-            //******* end of debug mouse position info ********
 
             //*******************************************************
             //********** I've got this mousewheel code from *********
@@ -166,31 +154,79 @@
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
 
-            $('#presentationContainer').on("mousedown", grabbing);
+            $('#presentationContainer').on("mousedown", dragging);
             $('#presentationContainer').on("mouseup", containerMouseUp);
             
+            $('#presentationContainer').on("mousemove", function(e) {
 
-            function grabbing(e) {
-                presentationContainer.setAttribute('class', 'grabbing');
+            });
+
+            function dragging(e) {
+                mouseDragging = true;
+                previousMousePosition.x = e.pageX - svgOffsetLeft;
+                previousMousePosition.y = e.pageY - svgOffsetTop;
+                presentationContainer.setAttribute('class', 'dragging');
                 $(document).on("mouseup", containerMouseUp);
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+                
             }
 
             function containerMouseUp(e) {
-                presentationContainer.setAttribute('class', 'grabbable');
+                mouseDragging = false;
+                presentationContainer.setAttribute('class', 'draggable');
                 $(document).off('mouseup');
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
+
+
+
+           
+            $('#presentationContainer').on("mousemove", function(e) {
+
+                if (mouseDragging && previousMousePosition.x && previousMousePosition.y) {
+                    //calculate new picture offset
+                    svgTranslate.x = svgTranslate.x - previousMousePosition.x + e.pageX - svgOffsetLeft;
+                    svgTranslate.y = svgTranslate.y - previousMousePosition.y + e.pageY - svgOffsetTop;
+
+                    //Fit image sides to container
+                    if ( svgTranslate.x > 0 ) svgTranslate.x = 0;
+                    if ( svgTranslate.y > 0 ) svgTranslate.y = 0;
+                    if ( svgTranslate.x < - svgWidth * (svgScale - 1) ) svgTranslate.x = - svgWidth * (svgScale - 1);
+                    if ( svgTranslate.y < - svgHeight * (svgScale - 1) ) svgTranslate.y = - svgHeight * (svgScale - 1);
+
+                    var svgGroup = document.getElementById('svgGroup'),
+                    svgTransform = 'translate(' + svgTranslate.x + ', ' + svgTranslate.y + ')' + ' scale(' + svgScale + ')';
+                    svgGroup.setAttributeNS(null, 'transform', svgTransform);
+                }
+                previousMousePosition.x = e.pageX - svgOffsetLeft;
+                previousMousePosition.y = e.pageY - svgOffsetTop;
+                //******* debug mouse position info ********
+                var mouseXInput = document.getElementById('mouseXInput'),
+                    mouseYInput = document.getElementById('mouseYInput'),
+                    mouseXRelativeInput = document.getElementById('mouseXRelativeInput'),
+                    mouseYRelativeInput = document.getElementById('mouseYRelativeInput'),
+                    mouseXPosition = e.pageX - svgOffsetLeft,
+                    mouseYPosition = e.pageY - svgOffsetTop,
+                    mouseXRelativePosition = mouseXPosition / svgWidth,
+                    mouseYRelativePosition = mouseYPosition / svgHeight;
+                mouseXInput.value = mouseXPosition;
+                mouseYInput.value = mouseYPosition;
+                mouseXRelativeInput.value = mouseXRelativePosition;
+                mouseYRelativeInput.value = mouseYRelativePosition;
+                //******* end of debug mouse position info ********
+            });
+
+
         });
     </script>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div>
-        <h2>Mousewheel image scale</h2>
+        <h2>Mousewheel image zoom</h2>
     </div>
     <div>
-        <div class="grabbable" id="presentationContainer"></div>
+        <div class="draggable" id="presentationContainer"></div>
         <div class="column">
             <div>
                 <label for="svgWidthInput">SVG width:</label>
