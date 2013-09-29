@@ -107,7 +107,7 @@
             function onWheel(e) {
                 e = e || window.event;
                 // wheelDelta не дает возможность узнать количество пикселей
-                var delta = e.deltaY || e.detail || e.wheelDelta;
+                var delta = e.deltaY || e.detail || - e.wheelDelta;
                 if ( delta < 0 ) {
                     var scaleDifference = 1.05;
                 } else {
