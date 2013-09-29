@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image zoom</title>
+    <script type="text/javascript" src="jquery-1.10.2.js"></script>
+    <script type="text/javascript">
+        svgOffsetTop = 0;
+        svgOffsetLeft = 0;
+        svgScale = 1;
+        svgTranslate = {
+            x: 0,
+            y: 0
+        };
+        svgHeight = 0;
+        svgWidth = 0;
+
+        $(document).ready(function(){
+            var img = new Image();
+            img.src = 'image.jpg';
+            img.onload = function() {
+                var imageWidth = this.width,
+                    imageHeight = this.height,
+                    raphaelContainerWidth = $(window).width() - 300,
+                    raphaelContainerheight = $(window).height() - 75,
+                    widthRatio = raphaelContainerWidth / imageWidth,
+                    heightRatio = raphaelContainerheight / imageHeight;
+                if (widthRatio < heightRatio) {
+                    imageWidth = imageWidth * widthRatio;
+                    imageHeight = imageHeight * widthRatio;
+                } else {
+                    imageWidth = imageWidth * heightRatio;
+                    imageHeight = imageHeight * heightRatio;
+                }
+                imageWidth = imageWidth - imageWidth % 1;
+                imageHeight = imageHeight - imageHeight % 1;
+                
+                // *********** Debug info ***********
+                svgWidth = imageWidth;
+                svgHeight = imageHeight;
+                var svgHeightInput = document.getElementById('svgHeightInput'),
+                    svgWidthInput = document.getElementById('svgWidthInput');
+                svgHeightInput.value = svgHeight;
+                svgWidthInput.value = svgWidth;
+                // ******* end of debug info *********
+
+                presentationContainer = document.getElementById("presentationContainer");
+                var paper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                paper.setAttribute('version', "1.1");
+                paper.setAttribute('width', imageWidth);
+                paper.setAttribute('height', imageHeight);
+                paper.setAttribute('preserveAspectRatio', 'xMidYMid');
+                paper.setAttribute('viewBox', '0 0 ' + imageWidth + ' ' + imageHeight);
+                paper.setAttribute('id', 'presentationSvg');
+                presentationContainer.appendChild(paper);
+                var svgGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                svgGroup.setAttribute('id', "svgGroup");
+                paper.appendChild(svgGroup);
+                var svgImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                svgImage.setAttributeNS(null, 'x', 0);
+                svgImage.setAttributeNS(null, 'y', 0);
+                svgImage.setAttributeNS(null, 'width', imageWidth);
+                svgImage.setAttributeNS(null, 'height', imageHeight);
+                svgImage.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', 'image.jpg');
+                svgImage.setAttributeNS(null, 'preserveAspectRatio', 'none');
+                svgImage.setAttribute('id', 'svgImage');
+                svgGroup.appendChild(svgImage);
+                svgOffsetLeft = $('#presentationContainer').offset().left;
+                svgOffsetTop = $('#presentationContainer').offset().top;
+            }
+
+            //******* debug mouse position info ********
+            $('#presentationContainer').on("mousemove", function(e) {
+                var mouseXInput = document.getElementById('mouseXInput'),
+                    mouseYInput = document.getElementById('mouseYInput'),
+                    mouseXRelativeInput = document.getElementById('mouseXRelativeInput'),
+                    mouseYRelativeInput = document.getElementById('mouseYRelativeInput'),
+                    mouseXPosition = e.pageX - svgOffsetLeft,
+                    mouseYPosition = e.pageY - svgOffsetTop,
+                    mouseXRelativePosition = mouseXPosition / svgWidth,
+                    mouseYRelativePosition = mouseYPosition / svgHeight;
+                mouseXInput.value = mouseXPosition;
+                mouseYInput.value = mouseYPosition;
+                mouseXRelativeInput.value = mouseXRelativePosition;
+                mouseYRelativeInput.value = mouseYRelativePosition;
+            });
+            //******* end of debug mouse position info ********
+
+            //*******************************************************
+            //********** I've got this mousewheel code from *********
+            //******** http://learn.javascript.ru/mousewheel ********
+            //*******************************************************
+            if (presentationContainer.addEventListener) {
+                if ('onwheel' in document) {
+                    presentationContainer.addEventListener ("wheel", onWheel, false);
+                } else if ('onmousewheel' in document) {
+                    presentationContainer.addEventListener ("mousewheel", onWheel, false);
+                } else {
+                    presentationContainer.addEventListener ("MozMousePixelScroll", onWheel, false);
+                }
+            } else { 
+                presentationContainer.attachEvent ("onmousewheel", onWheel);
+            }
+            //*******************************************************
+            //******************* Listener added ********************
+            //*******************************************************
+
+            function onWheel(e) {
+                e = e || window.event;
+                // wheelDelta не дает возможность узнать количество пикселей
+                var delta = e.deltaY || e.detail || e.wheelDelta;
+                if ( delta < 0 ) {
+                    var scaleDifference = 1.05;
+                } else {
+                    var scaleDifference = 0.95;
+                }
+                
+                var mouseXPosition = e.pageX - svgOffsetLeft,
+                    mouseYPosition = e.pageY - svgOffsetTop,
+                    //Получаем координаты указателя мышки
+                    mouseXRelativePosition = mouseXPosition / svgWidth,
+                    mouseYRelativePosition = mouseYPosition / svgHeight,
+                    //Координаты указателя мышки в соотношении к размеру Вьюбокса (возможно ошибка кроется здесь)
+                    widthDifference = svgWidth * (svgScale * scaleDifference) - svgWidth * svgScale,
+                    widthDifferenceRelativeToMouseX = widthDifference * mouseXRelativePosition,
+                    heightDifference = svgHeight * (svgScale * scaleDifference) - svgHeight * svgScale,
+                    heightDifferenceRelativeToMouseY = heightDifference * mouseYRelativePosition;
+                svgScale = svgScale * scaleDifference;
+
+                
+                svgTranslate.x = svgTranslate.x - widthDifferenceRelativeToMouseX;
+                svgTranslate.y = svgTranslate.y - heightDifferenceRelativeToMouseY;
+
+
+                
+                //debug info - delta
+                var deltaInput = document.getElementById('deltaInput'),
+                    svgScaleInput = document.getElementById('svgScaleInput'),
+                    svgTranslateXInput = document.getElementById('svgTranslateXInput'),
+                    svgTranslateYInput = document.getElementById('svgTranslateYInput');
+                deltaInput.value = +deltaInput.value + delta;
+                svgScaleInput.value = svgScale;
+                var mouseXInput = document.getElementById('mouseXInput'),
+                    mouseYInput = document.getElementById('mouseYInput'),
+                    mouseXRelativeInput = document.getElementById('mouseXRelativeInput'),
+                    mouseYRelativeInput = document.getElementById('mouseYRelativeInput');
+                mouseXInput.value = mouseXPosition;
+                mouseYInput.value = mouseYPosition;
+                mouseXRelativeInput.value = mouseXRelativePosition;
+                mouseYRelativeInput.value = mouseYRelativePosition;
+                svgTranslateXInput.value = svgTranslate.x;
+                svgTranslateYInput.value = svgTranslate.y;
+                //end of debug info - delta
+
+                //svgTranslate.x = 
+                //svgTranslate.y = 
+                var svgGroup = document.getElementById('svgGroup'),
+                    svgTransform = 'translate(' + svgTranslate.x + ', ' + svgTranslate.y + ')' + ' scale(' + svgScale + ')';
+                svgGroup.setAttributeNS(null, 'transform', svgTransform);
+
+                //prevent default mousewheel event
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+            }
+        });
+
+</script>
+</head>
+<body>
+    <div>
+        <center><h2>Mousewheel image scale</h2><center>
+    </div>
+    <div>
+        <div id="presentationContainer" style="float:left; border:1px dashed #000000;">
+
+        </div>
+        <div style="float:left;">
+            <div>
+                <label for="svgWidthInput">SVG width:</label>
+                <input id="svgWidthInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="svgHeightInput">SVG height:</label>
+                <input id="svgHeightInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="deltaInput">Delta:</label>
+                <input id="deltaInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="svgScaleInput">Scale:</label>
+                <input id="svgScaleInput" type="text" value="1" readonly>
+            </div>
+            <div>
+                <label for="mouseXInput">Mouse X:</label>
+                <input id="mouseXInput" type="text" value="0" readonly>
+                <label for="mouseXRelativeInput">Relative X:</label>
+                <input id="mouseXRelativeInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="mouseYInput">Mouse Y:</label>
+                <input id="mouseYInput" type="text" value="0" readonly>
+                <label for="mouseYRelativeInput">Relative Y:</label>
+                <input id="mouseYRelativeInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="svgTranslateXInput">SVG group translate X:</label>
+                <input id="svgTranslateXInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="svgTranslateYInput">SVG group translate Y:</label>
+                <input id="svgTranslateYInput" type="text" value="0" readonly>
+            </div>
+
+            <div>
+                <label for="svgPreviousWidthInput">Previous SVG width:</label>
+                <input id="svgPreviousWidthInput" type="text" value="0" readonly>
+            </div>
+            <div>
+                <label for="svgPreviousHeightInput">Previous SVG height:</label>
+                <input id="svgPreviousHeightInput" type="text" value="0" readonly>
+            </div>
+
+
+        </div>
+    </div>
+</body>
+</html>
