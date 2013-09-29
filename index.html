@@ -113,26 +113,31 @@
                 } else {
                     var scaleDifference = 0.95;
                 }
-                
+                if ( svgScale * scaleDifference < 1 ) scaleDifference = 1;  
                 var mouseXPosition = e.pageX - svgOffsetLeft,
                     mouseYPosition = e.pageY - svgOffsetTop,
-                    //Получаем координаты указателя мышки
-                    mouseXRelativePosition = mouseXPosition / svgWidth,
-                    mouseYRelativePosition = mouseYPosition / svgHeight,
-                    //Координаты указателя мышки в соотношении к размеру Вьюбокса (возможно ошибка кроется здесь)
+                    //Get the cursor position over a picture container
+                    mouseXRelativePosition = (mouseXPosition - svgTranslate.x) / (svgWidth * svgScale),
+                    mouseYRelativePosition = (mouseYPosition - svgTranslate.y) / (svgHeight * svgScale),
+                    //Get the cursor position over a picture relative to picture size
                     widthDifference = svgWidth * (svgScale * scaleDifference) - svgWidth * svgScale,
                     widthDifferenceRelativeToMouseX = widthDifference * mouseXRelativePosition,
                     heightDifference = svgHeight * (svgScale * scaleDifference) - svgHeight * svgScale,
                     heightDifferenceRelativeToMouseY = heightDifference * mouseYRelativePosition;
-                svgScale = svgScale * scaleDifference;
-
                 
+                svgScale = svgScale * scaleDifference;
+                //calculate new picture offset
                 svgTranslate.x = svgTranslate.x - widthDifferenceRelativeToMouseX;
                 svgTranslate.y = svgTranslate.y - heightDifferenceRelativeToMouseY;
 
 
+                //Fit image sides to container
+                if ( svgTranslate.x > 0 ) svgTranslate.x = 0;
+                if ( svgTranslate.y > 0 ) svgTranslate.y = 0;
+                if ( svgTranslate.x < - svgWidth * (svgScale - 1) ) svgTranslate.x = - svgWidth * (svgScale - 1);
+                if ( svgTranslate.y < - svgHeight * (svgScale - 1) ) svgTranslate.y = - svgHeight * (svgScale - 1);
                 
-                //debug info - delta
+                //debug info
                 var deltaInput = document.getElementById('deltaInput'),
                     svgScaleInput = document.getElementById('svgScaleInput'),
                     svgTranslateXInput = document.getElementById('svgTranslateXInput'),
@@ -149,7 +154,7 @@
                 mouseYRelativeInput.value = mouseYRelativePosition;
                 svgTranslateXInput.value = svgTranslate.x;
                 svgTranslateYInput.value = svgTranslate.y;
-                //end of debug info - delta
+                //end of debug info
 
                 //svgTranslate.x = 
                 //svgTranslate.y = 
@@ -209,17 +214,6 @@
                 <label for="svgTranslateYInput">SVG group translate Y:</label>
                 <input id="svgTranslateYInput" type="text" value="0" readonly>
             </div>
-
-            <div>
-                <label for="svgPreviousWidthInput">Previous SVG width:</label>
-                <input id="svgPreviousWidthInput" type="text" value="0" readonly>
-            </div>
-            <div>
-                <label for="svgPreviousHeightInput">Previous SVG height:</label>
-                <input id="svgPreviousHeightInput" type="text" value="0" readonly>
-            </div>
-
-
         </div>
     </div>
 </body>
