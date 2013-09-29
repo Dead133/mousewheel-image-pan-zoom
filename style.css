@@ -1,0 +1,18 @@
+h2 {
+	text-align:center;
+}
+
+#presentationContainer {
+	float:left; 
+	border:1px dashed #000000;
+}
+.column {
+	float:left;
+}
+.grabbing { 
+	cursor: url(closedhand.cur), pointer !important; 
+}
+
+.grabbable { 
+	cursor: url(openhand.cur), pointer !important; 
+}

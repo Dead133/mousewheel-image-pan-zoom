@@ -168,15 +168,17 @@
 
             $('#presentationContainer').on("mousedown", grabbing);
             $('#presentationContainer').on("mouseup", containerMouseUp);
-            $(document).on("mouseup", containerMouseUp);
+            
 
             function grabbing(e) {
                 presentationContainer.setAttribute('class', 'grabbing');
+                $(document).on("mouseup", containerMouseUp);
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
 
             function containerMouseUp(e) {
                 presentationContainer.setAttribute('class', 'grabbable');
+                $(document).off('mouseup');
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
         });
