@@ -165,26 +165,31 @@
                 //prevent default mousewheel event
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             }
+
+            $('#presentationContainer').on("mousedown", grabbing);
+            $('#presentationContainer').on("mouseup", containerMouseUp);
+            $(document).on("mouseup", containerMouseUp);
+
+            function grabbing(e) {
+                presentationContainer.setAttribute('class', 'grabbing');
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+            }
+
+            function containerMouseUp(e) {
+                presentationContainer.setAttribute('class', 'grabbable');
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+            }
         });
     </script>
-    <style type="text/css">
-        .grabbing { 
-          cursor: url(closedhand.cur), pointer !important; 
-        }
-        .grabbable { 
-          cursor: url(openhand.cur), pointer !important; 
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div>
-        <center><h2>Mousewheel image scale</h2><center>
+        <h2>Mousewheel image scale</h2>
     </div>
     <div>
-        <div id="presentationContainer" style="float:left; border:1px dashed #000000;">
-
-        </div>
-        <div style="float:left;">
+        <div class="grabbable" id="presentationContainer"></div>
+        <div class="column">
             <div>
                 <label for="svgWidthInput">SVG width:</label>
                 <input id="svgWidthInput" type="text" value="0" readonly>
